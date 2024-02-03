@@ -6,21 +6,22 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/time.h>
+#include<pthread.h>
 
-void gestsigal1()
+void getsignal()
 {
 	printf("Temp (from pressure) = %.1f°C\n",temperature());
 	printf("\n");
 	
 }
 
-void gestsigal2()
+void getsignal2()
 {
 	printf("Humidity = %.0f%% rH\n",humidity());
 	printf("\n");
 }
 
-void gestsigal3()
+void getsignal3()
 {
 	printf("Pressure = %.0f hPa\n", pressure());
 	printf("\n");
@@ -35,9 +36,9 @@ int main (void){
 	struct itimerspec spec_1, spec_2, spec_3;
 
 	// Capturer les trois signaux 
-	signal(SIGRTMIN+1, gestsigal1);
-	signal(SIGRTMIN+2, gestsigal2);
-	signal(SIGRTMIN+3, gestsigal3);
+	signal(SIGRTMIN+1, getsignal);
+	signal(SIGRTMIN+2, getsignal2);
+	signal(SIGRTMIN+3, getsignal3);
 
 	// Configuraiton de la notification
 	event_1.sigev_notify = SIGEV_SIGNAL;
@@ -54,7 +55,7 @@ int main (void){
 		exit(EXIT_FAILURE);
 	}
 
-	// Congiguratione et creation du timer 2
+	// Configuration et creation du timer 2
 	event_2.sigev_notify = SIGEV_SIGNAL;
 	event_2.sigev_signo  = SIGRTMIN+2;
 	spec_2.it_interval.tv_sec  = 1;
@@ -64,7 +65,7 @@ int main (void){
 		printf("Erreur dans la creation du timer #2");
 		exit(EXIT_FAILURE);
 	}
-	// Congiguratione et creation du timer 3
+	// Configuration et creation du timer 3
 	event_3.sigev_notify = SIGEV_SIGNAL;
 	event_3.sigev_signo  = SIGRTMIN+3;
 	spec_3.it_interval.tv_sec  = 1;
@@ -82,6 +83,12 @@ int main (void){
 		printf("Erreur dans la programmation des timers");
 		exit(EXIT_FAILURE);
 	}
+	
+	// Creer les threads
+	pthread_t th1, th2, th3;
+	pthread_create(&th1, NULL, &getsignal, NULL);
+	pthread_create(&th2, NULL, &getsignal2, NULL);
+	pthread_create(&th3, NULL, &getsignal3, NULL);
 	
 
 		while (1)
